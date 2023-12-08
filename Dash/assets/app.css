@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Nova+Square&display=swap');
+
+body {
+    font-family: 'Nova Square', sans-serif;
+}
+
+.nav-icon-text{
+    position: relative;
+    top: 4px;
+    font-size: 1.2rem;
+    text-decoration: none;
+    color: #fff;
+    margin: 0;
+}
+
+.nav-text{
+    font-size: 1.2rem;
+    text-decoration: none;
+    color: #fff;
+}
+
+.nav-text:hover {
+    color: #90D0EC;
+}
+
+.icon-chess{
+    font-size: 1.2rem;
+    color: #fff;
+}
