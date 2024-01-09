@@ -1,6 +1,7 @@
 from __future__ import division 
 import pandas as pd
 import plotly.express as px
+import numpy as np
 import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
 from dash import html, dcc, Input, Output, Dash
@@ -8,7 +9,7 @@ from pandas._libs import properties
 
 from app import *
 from components import navbardash
-from services import yt_carrossel
+from services import carousel
 
 
 df = pd.read_csv("Df\games.csv")
@@ -65,7 +66,7 @@ layout = dbc.Container(fluid=True, children=[
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([
-                        html.P('Aberturas mais populares'),
+                        html.P('Aberturas mais populares desconsiderando a variação:'),
                         dcc.Graph(
                             id='bar_popular_openings',
                             config={
@@ -79,16 +80,11 @@ layout = dbc.Container(fluid=True, children=[
                         )
                     ], style={'height': '100%'})
                 ], style={'margin-top': '1rem'}),
-            ], md=8),
+            ], md=8, style={'height': '100%'}),
             dbc.Col([
-                dbc.Carousel(
-                    items=yt_carrossel.carousel_items,
-                    controls=True,
-                    indicators=True,
-                    interval=2000,  # Tempo de transição entre os slides (em milissegundos)
-                    style={'height': '100%', 'margin-top': '1rem', 'width': '100%'},
-                    className="carousel-container"
-                ),
+                html.Div(
+                    carousel.carousel
+                )
             ], md=4)
         ]),
         dbc.Row([
@@ -106,6 +102,26 @@ layout = dbc.Container(fluid=True, children=[
                     dbc.CardBody([
                         dcc.Graph(
                             id='dispersao'
+                        )
+                    ], style={'height': '80%'})
+                ], style={'margin-top': '1rem'}),
+            ], md=6),
+        ]),
+        dbc.Row([
+            dbc.Col([
+                dbc.Card([
+                    dbc.CardBody([
+                        dcc.Graph(
+                            id='table'
+                        )
+                    ], style={'height': '80%'})
+                ], style={'margin-top': '1rem'}),
+            ], md=6),
+            dbc.Col([
+                dbc.Card([
+                    dbc.CardBody([
+                        dcc.Graph(
+                            id='mode'
                         )
                     ], style={'height': '80%'})
                 ], style={'margin-top': '1rem'}),
@@ -234,7 +250,7 @@ def create_pie_chart(selected_status, selected_victory_status):
     [Input('radio_status', 'value'),
      Input('radio_victory_status', 'value')]
 )
-def create_pie_chart(selected_status, selected_victory_status):
+def create_dispersao_chart(selected_status, selected_victory_status):
     # Filtrar apenas partidas classificadas
     filtered_df = df[df['rated'] == True]
 
@@ -287,5 +303,61 @@ def create_pie_chart(selected_status, selected_victory_status):
 
     # Adicionar linhas e grade horizontais
     fig.update_yaxes(showgrid=True, gridwidth=0.5, gridcolor='#bdc3c7')
+
+    return fig
+
+
+
+@app.callback(
+    Output('mode', 'figure'),
+    [Input('radio_status', 'value'),
+     Input('radio_victory_status', 'value')]
+)
+def create_waterfall_chart(selected_status, selected_victory_status):
+    # Filtrar apenas partidas classificadas
+    filtered_df = df
+
+    if selected_status != 0 or selected_victory_status != 0:
+        # Filtrar com base nos valores selecionados
+        filtered_df = get_filtered_df(selected_status, selected_victory_status)
+
+    # Contar o número de partidas por modo incremental
+    increment_counts = filtered_df['increment_code'].value_counts()
+
+    # Selecionar os cinco modos incrementais mais jogados
+    top_5_increments = increment_counts.head(5).index
+
+    # Filtrar o DataFrame para incluir apenas os cinco modos incrementais mais jogados
+    filtered_df = filtered_df[filtered_df['increment_code'].isin(top_5_increments)]
+
+    # Contar o número de vezes que cada incremento apareceu nos cinco mais jogados
+    num_partidas_por_incremento = filtered_df['increment_code'].value_counts()
+
+    # Criar o gráfico de cascata
+    fig = go.Figure(go.Waterfall(
+        name='Incremental Games',
+        orientation='v',
+        measure=["relative"] * 5 + ["total"],
+        x=num_partidas_por_incremento.index.tolist() + ['Total'],
+        textposition=["inside"] * 5 + ["inside"],
+        text=num_partidas_por_incremento.tolist() + [num_partidas_por_incremento.sum()],
+        y=num_partidas_por_incremento.tolist() + [0],
+        connector={"line": {"color": "rgb(63, 63, 63)"}},
+        increasing={"marker": {"color": '#F5B041'}},  # Cor para barras crescentes
+        decreasing={"marker": {"color": '#90D0EC'}}  # Cor para barras decrescentes
+    ))
+
+    # Personalizar layout do gráfico
+    fig.update_layout(
+        title='Top 5 Modos de Incrementos mais Jogados',
+        xaxis_title='Incremento',
+        yaxis_title='Número de Jogos',
+        font=dict(family="Nova Square, sans-serif", size=12, color="#2c3e50"),  # Tamanho e cor do título
+        xaxis=dict(title_font=dict(size=12)),  # Tamanho do título do eixo x
+        yaxis=dict(title_font=dict(size=12)),  # Tamanho do título do eixo y
+        legend=dict(font=dict(size=12)),  # Tamanho da legenda
+        paper_bgcolor='rgba(0,0,0,0)',  # Cor do fundo
+        plot_bgcolor='rgba(0,0,0,0)',  # Cor do fundo do gráfico
+    )
 
     return fig
