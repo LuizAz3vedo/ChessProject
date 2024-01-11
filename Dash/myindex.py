@@ -40,4 +40,4 @@ def display_page(pathname):
     return page_layouts.get(pathname, page_layouts['/dashboard'])
 
 if __name__ == '__main__':
-    app.run_server(port='8080', debug=True)
+    app.run_server(port='8084', debug=True)
