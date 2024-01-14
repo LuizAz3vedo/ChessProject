@@ -24,7 +24,7 @@ carousel = dbc.Carousel(
     controls=True,
     indicators=True,
     interval=2000,  # Tempo de transição entre os slides (em milissegundos)
-    style={'margin-top': '1rem', 'width': '100%', 'height': '200px'},  # Ajuste a altura desejada aqui
+    style={'margin-top': '1rem', 'width': '100%', 'height': '100%'},  # Ajuste a altura desejada aqui
     className="carousel-container"
 )
 

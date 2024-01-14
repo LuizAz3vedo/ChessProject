@@ -13,6 +13,7 @@ from services import carousel
 
 
 df = pd.read_csv("Df\games.csv")
+df_full = pd.read_csv("Df\games.csv")
 df['opening_name'] = df['opening_name'].str.split(':').str[0]
 options_status = [
     {'label': 'Todos', 'value': 0},
@@ -111,12 +112,31 @@ layout = dbc.Container(fluid=True, children=[
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([
-                        dcc.Graph(
-                            id='table'
+                        dash.dash_table.DataTable(
+                            id='table',
+                            columns=[
+                                {'name': 'Abertura', 'id': 'opening_name'},
+                                {'name': 'Movimentos', 'id': 'moves'}
+                            ],
+                            style_table={'height': '100%', 'overflowY': 'auto', 'width': '100%'},
+                            style_header={
+                                'backgroundColor': '#f2f2f2',
+                                'fontWeight': 'bold',
+                                'text-align': 'center',
+                            },
+                            style_cell={
+                                'backgroundColor': '#f9f9f9',
+                                'color': '#333333',
+                                'textAlign': 'center',
+                                'whiteSpace': 'normal',
+                                'height': 'auto',
+                            },
+                            virtualization=True,
+
                         )
-                    ], style={'height': '80%'})
+                    ], style={'height': '100%'})
                 ], style={'margin-top': '1rem'}),
-            ], md=6),
+            ], md=6), 
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([
@@ -361,3 +381,26 @@ def create_waterfall_chart(selected_status, selected_victory_status):
     )
 
     return fig
+
+
+@app.callback(
+    Output('table', 'data'),
+    [Input('radio_status', 'value'),
+     Input('radio_victory_status', 'value')]
+)
+def update_table(selected_status, selected_victory_status):
+    filtered_df = df_full.copy()
+
+    if selected_status != 0 or selected_victory_status != 0:
+        popular_openings = filtered_df['opening_name'].value_counts().head(10)
+    else:
+        popular_openings = filtered_df['opening_name'].value_counts().head(10)
+
+    # Criar uma lista de dicionários para os dados da tabela
+    table_data = []
+    for opening in popular_openings.index:
+        moves_list = filtered_df[filtered_df['opening_name'] == opening]['moves'].values[0].split()[:10]
+        moves_str = ' '.join(moves_list)
+        table_data.append({'opening_name': opening, 'moves': moves_str})
+
+    return table_data
