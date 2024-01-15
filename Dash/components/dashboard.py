@@ -112,30 +112,35 @@ layout = dbc.Container(fluid=True, children=[
             dbc.Col([
                 dbc.Card([
                     dbc.CardBody([
-                        dash.dash_table.DataTable(
-                            id='table',
-                            columns=[
-                                {'name': 'Abertura', 'id': 'opening_name'},
-                                {'name': 'Movimentos', 'id': 'moves'}
-                            ],
-                            style_table={'height': '100%', 'overflowY': 'auto', 'width': '100%'},
-                            style_header={
-                                'backgroundColor': '#f2f2f2',
-                                'fontWeight': 'bold',
-                                'text-align': 'center',
-                            },
-                            style_cell={
-                                'backgroundColor': '#f9f9f9',
-                                'color': '#333333',
-                                'textAlign': 'center',
-                                'whiteSpace': 'normal',
-                                'height': 'auto',
-                            },
-                            virtualization=True,
-
-                        )
-                    ], style={'height': '100%'})
-                ], style={'margin-top': '1rem'}),
+                    html.H4('Aberturas e seus movimentos'),
+                    dash.dash_table.DataTable(
+                    id='table',
+                    columns=[
+                        {'name': 'Opening', 'id': 'Opening', 'type': 'text'},
+                        {'name': 'Top 10 Moves', 'id': 'Top 10 Moves', 'type': 'text'},
+                    ],
+                    style_table={'height': '400px', 'overflowY': 'auto'},
+                    style_header={
+                        'backgroundColor': 'rgb(230, 230, 230)',
+                        'fontWeight': 'bold',
+                    },
+                    style_cell={
+                        'whiteSpace': 'normal',
+                        'height': 'auto',
+                        'minWidth': '180px',
+                        'maxWidth': '180px',
+                        'textAlign': 'left',
+                    },
+                    page_size=10,
+                    style_data_conditional=[
+                        {
+                            'if': {'row_index': 'odd'},
+                            'backgroundColor': 'rgb(248, 248, 248)'
+                        },
+                    ],
+                )
+                ], style={'height': 'auto'})
+            ], style={'margin-top': '1rem', 'height': 'auto'}),
             ], md=6), 
             dbc.Col([
                 dbc.Card([
@@ -401,6 +406,6 @@ def update_table(selected_status, selected_victory_status):
     for opening in popular_openings.index:
         moves_list = filtered_df[filtered_df['opening_name'] == opening]['moves'].values[0].split()[:10]
         moves_str = ' '.join(moves_list)
-        table_data.append({'opening_name': opening, 'moves': moves_str})
+        table_data.append({'Opening': opening, 'Top 10 Moves': moves_str})
 
     return table_data
